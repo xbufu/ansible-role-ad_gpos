@@ -1,4 +1,4 @@
----  
+---
 - name: Create GPO to debloat the taskbar
   ansible.windows.win_shell: |
     Import-Module GroupPolicy -Verbose:$false
@@ -24,7 +24,7 @@
 
       try {
           Set-GPRegistryValue @Params -ValueName 'EnableFeeds' -Value 0 -Type DWord | Out-Null
-      } catch { 
+      } catch {
           Write-Error "Error while configuring News and Interests policy!"
       }
 
@@ -37,7 +37,7 @@
 
       try {
           Set-GPRegistryValue @Params -ValueName 'HidePeopleBar' -Value 1 -Type DWord | Out-Null
-      } catch { 
+      } catch {
           Write-Error "Error while configuring People Bar policy!"
       }
 
@@ -50,7 +50,7 @@
 
       try {
           Set-GPRegistryValue @Params -ValueName 'HideSCAMeetNow' -Value 1 -Type DWord | Out-Null
-      } catch { 
+      } catch {
           Write-Error "Error while configuring Meet Now policy!"
       }
 
@@ -63,7 +63,7 @@
 
       try {
           Set-GPRegistryValue @Params -ValueName 'ShowTaskViewButton' -Value 0 -Type DWord | Out-Null
-      } catch { 
+      } catch {
           Write-Error "Error while configuring Task View policy!"
       }
 
@@ -77,7 +77,7 @@
       try {
           Set-GPRegistryValue @Params -ValueName 'AllowCortana' -Value 0 -Type DWord | Out-Null
           Set-GPRegistryValue @Params -ValueName 'AllowCloudSearch' -Value 0 -Type DWord | Out-Null
-      } catch { 
+      } catch {
           Write-Error "Error while configuring Cortana policy!"
       }
 
@@ -90,7 +90,7 @@
 
       try {
           Set-GPRegistryValue @Params -ValueName 'SearchboxTaskbarMode ' -Value 0 -Type DWord | Out-Null
-      } catch { 
+      } catch {
           Write-Error "Error while configuring Search Bar policy!"
       }
 

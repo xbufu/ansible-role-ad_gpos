@@ -73,6 +73,6 @@
       Set-GPPermissions -Name $GPOName -PermissionLevel GpoApply -TargetName "Domain Users" -TargetType User | Out-Null
 
       Write-Host "Linking and enabling new GPO..."
-      
+
       New-GPLink -Name $GPOName -Target $TargetOU -LinkEnabled Yes -Enforced Yes | Out-Null
     }

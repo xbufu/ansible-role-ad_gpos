@@ -19,7 +19,7 @@
 
       $PolicyStoreName = "$Forest\$GPOName"
       $GPOSessionName = Open-NetGPO -PolicyStore $PolicyStoreName
-      
+
       New-NetFirewallRule -DisplayName "Allow WMI (ASync-In)" -Profile Any -Direction Inbound -GPOSession $GPOSessionName -PolicyStore $GPOName -Protocol TCP -LocalPort Any -Program "%systemroot%\system32\wbem\unsecapp.exe" | Out-Null
       New-NetFirewallRule -DisplayName "Allow WMI (DCOM-In)" -Profile Any -Direction Inbound -GPOSession $GPOSessionName -PolicyStore $GPOName -Protocol TCP -LocalPort 135 -Program "%SystemRoot%\system32\svchost.exe" | Out-Null
       New-NetFirewallRule -DisplayName "Allow WMI (WMI-In)" -Profile Any -Direction Inbound -GPOSession $GPOSessionName -PolicyStore $GPOName -Protocol TCP -LocalPort Any -Program "%SystemRoot%\system32\svchost.exe" | Out-Null

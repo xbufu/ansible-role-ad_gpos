@@ -36,7 +36,7 @@
           Name = $GPOName;
           Key = 'HKLM\SYSTEM\CurrentControlSet\Services\WinRM';
       }
-    
+
       try {
           Set-GPRegistryValue @Params -ValueName 'Start' -Value 2 -Type DWord | Out-Null
           Set-GPRegistryValue @Params -ValueName 'DelayedAutoStart' -Value 0 -Type DWord | Out-Null

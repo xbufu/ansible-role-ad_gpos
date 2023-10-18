@@ -24,7 +24,7 @@
 
       try {
           Set-GPRegistryValue @Params -ValueName 'fDenyTSConnections' -Value 0 -Type DWord | Out-Null
-      } catch { 
+      } catch {
           Write-Error "Error while configuring RDP policy!"
       }
 
@@ -35,7 +35,7 @@
 
       try {
           Set-GPRegistryValue @Params -ValueName 'UserAuthentication' -Value 1 -Type DWord | Out-Null
-      } catch { 
+      } catch {
           Write-Error "Error while configuring NLA policy!"
       }
 
