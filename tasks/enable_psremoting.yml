@@ -36,11 +36,11 @@
           Name = $GPOName;
           Key = 'HKLM\SYSTEM\CurrentControlSet\Services\WinRM';
       }
-          
+    
       try {
           Set-GPRegistryValue @Params -ValueName 'Start' -Value 2 -Type DWord | Out-Null
           Set-GPRegistryValue @Params -ValueName 'DelayedAutoStart' -Value 0 -Type DWord | Out-Null
-      } catch { 
+      } catch {
           Write-Error "Error while configuring PS Remoting policy!"
       }
 
@@ -51,7 +51,7 @@
       $FWRuleName = "Allow WinRM"
 
       New-NetFirewallRule -DisplayName $FWRuleName -Profile Any -Direction Inbound -GPOSession $GPOSessionName -PolicyStore $GPOName -Protocol TCP -LocalPort 5985 | Out-Null
-      
+
       Save-NetGPO -GPOSession $GPOSessionName | Out-Null
 
       Write-Host "Configuring Security Filter..."
