@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  role_name: ad_gpos
+  author: xbufu
+  description: AD GPOs role.
+  company: Bufu-Security
+  license: license (BSD, MIT)
+  min_ansible_version: "2.1"
+  platforms:
+    - name: Windows
+      versions: all
+
+  galaxy_tags:
+    - windows
+    - ad
+    - gpo
+    - rdp
+    - psremoting
+    - wmi
+    - debloat
+    - defender

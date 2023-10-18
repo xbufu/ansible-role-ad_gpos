@@ -1,0 +1,40 @@
+---
+- name: Create GPO to set the PowerShell Script Execution Policy to Unrestricted
+  ansible.windows.win_shell: |
+    Import-Module GroupPolicy -Verbose:$false
+
+    $GPOName = "Enable Script Execution"
+    $GPOExists = Get-GPO -Name $GPOName -ErrorAction SilentlyContinue
+
+    if (! $GPOExists) {
+      Write-Host "Creating GPO..."
+      New-GPO -Name $GPOName | Out-Null
+
+      $Domain = Get-ADDomain
+      $Forest = $Domain.Forest
+      $DN = $Domain.DistinguishedName
+      $TargetOU = $DN
+
+      Write-Host "Configuring PowerShell Execution Policy..."
+
+      $Params = @{
+          Name = $GPOName;
+          Key = 'HKLM\Software\Policies\Microsoft\Windows\PowerShell';
+      }
+
+      try {
+          Set-GPRegistryValue @Params -ValueName 'EnableScripts' -Value 1 -Type DWord | Out-Null
+          Set-GPRegistryValue @Params -ValueName 'ExecutionPolicy' -Value "Unrestricted" -Type String | Out-Null
+      } catch {
+          Write-Error "Error while configuring Execution Policy!"
+      }
+
+      Write-Host "Configuring Security Filter..."
+
+      Set-GPPermissions -Name $GPOName -PermissionLevel GpoApply -TargetName "Domain Computers" -TargetType Group | Out-Null
+      Set-GPPermissions -Name $GPOName -PermissionLevel GpoApply -TargetName "Domain Users" -TargetType User | Out-Null
+
+      Write-Host "Linking and enabling new GPO..."
+
+      New-GPLink -Name $GPOName -Target $TargetOU -LinkEnabled Yes -Enforced Yes | Out-Null
+    }

@@ -1,0 +1,105 @@
+---  
+- name: Create GPO to debloat the taskbar
+  ansible.windows.win_shell: |
+    Import-Module GroupPolicy -Verbose:$false
+
+    $GPOName = "Debloat Taskbar"
+    $GPOExists = Get-GPO -Name $GPOName -ErrorAction SilentlyContinue
+
+    if (! $GPOExists) {
+      Write-Host "Creating GPO..."
+      New-GPO -Name $GPOName | Out-Null
+
+      $Domain = Get-ADDomain
+      $Forest = $Domain.Forest
+      $DN = $Domain.DistinguishedName
+      $TargetOU = $DN
+
+      Write-Host "Disabling News and Interests..."
+
+      $Params = @{
+          Name = $GPOName;
+          Key = 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds';
+      }
+
+      try {
+          Set-GPRegistryValue @Params -ValueName 'EnableFeeds' -Value 0 -Type DWord | Out-Null
+      } catch { 
+          Write-Error "Error while configuring News and Interests policy!"
+      }
+
+      Write-Host "Disabling People Bar..."
+
+      $Params = @{
+          Name = $GPOName;
+          Key = 'HKCU\Software\Policies\Microsoft\Windows\Explorer';
+      }
+
+      try {
+          Set-GPRegistryValue @Params -ValueName 'HidePeopleBar' -Value 1 -Type DWord | Out-Null
+      } catch { 
+          Write-Error "Error while configuring People Bar policy!"
+      }
+
+      Write-Host "Disabling Meet Now..."
+
+      $Params = @{
+          Name = $GPOName;
+          Key = 'HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer';
+      }
+
+      try {
+          Set-GPRegistryValue @Params -ValueName 'HideSCAMeetNow' -Value 1 -Type DWord | Out-Null
+      } catch { 
+          Write-Error "Error while configuring Meet Now policy!"
+      }
+
+      Write-Host "Disabling Task View..."
+
+      $Params = @{
+          Name = $GPOName;
+          Key = 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced';
+      }
+
+      try {
+          Set-GPRegistryValue @Params -ValueName 'ShowTaskViewButton' -Value 0 -Type DWord | Out-Null
+      } catch { 
+          Write-Error "Error while configuring Task View policy!"
+      }
+
+      Write-Host "Disabling Cortana..."
+
+      $Params = @{
+          Name = $GPOName;
+          Key = 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search';
+      }
+
+      try {
+          Set-GPRegistryValue @Params -ValueName 'AllowCortana' -Value 0 -Type DWord | Out-Null
+          Set-GPRegistryValue @Params -ValueName 'AllowCloudSearch' -Value 0 -Type DWord | Out-Null
+      } catch { 
+          Write-Error "Error while configuring Cortana policy!"
+      }
+
+      Write-Host "Disabling Search Bar..."
+
+      $Params = @{
+          Name = $GPOName;
+          Key = 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search';
+      }
+
+      try {
+          Set-GPRegistryValue @Params -ValueName 'SearchboxTaskbarMode ' -Value 0 -Type DWord | Out-Null
+      } catch { 
+          Write-Error "Error while configuring Search Bar policy!"
+      }
+
+      Write-Host "Configuring Security Filter..."
+
+      Set-GPPermissions -Name $GPOName -PermissionLevel GpoApply -TargetName "Domain Computers" -TargetType Group | Out-Null
+      Set-GPPermissions -Name $GPOName -PermissionLevel GpoApply -TargetName "Domain Users" -TargetType User | Out-Null
+
+      Write-Host "Linking and enabling new GPO..."
+
+      New-GPLink -Name $GPOName -Target $TargetOU -LinkEnabled Yes -Enforced Yes | Out-Null
+    }

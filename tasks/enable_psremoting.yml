@@ -1,0 +1,65 @@
+---
+- name: Create GPO to enable PS Remoting
+  ansible.windows.win_shell: |
+    Import-Module GroupPolicy -Verbose:$false
+
+    $GPOName = "Enable PS Remoting"
+    $GPOExists = Get-GPO -Name $GPOName -ErrorAction SilentlyContinue
+
+    if (! $GPOExists) {
+      Write-Host "Creating GPO..."
+      New-GPO -Name $GPOName | Out-Null
+
+      $Domain = Get-ADDomain
+      $Forest = $Domain.Forest
+      $DN = $Domain.DistinguishedName
+      $TargetOU = $DN
+
+      Write-Host "Configuring PS Remoting policy..."
+
+      $Params = @{
+          Name = $GPOName;
+          Key = 'HKLM\Software\Policies\Microsoft\Windows\WinRM\Service';
+      }
+
+      try {
+          Set-GPRegistryValue @Params -ValueName 'AllowAutoConfig' -Value 1 -Type DWord | Out-Null
+          Set-GPRegistryValue @Params -ValueName 'IPv4Filter' -Value '*' -Type String | Out-Null
+          Set-GPRegistryValue @Params -ValueName 'IPv6Filter' -Value '*' -Type String | Out-Null
+      } catch {
+          Write-Error "Error enabling remoting policy"
+      }
+
+      Write-Host "Configuring WinRM service..."
+
+      $Params = @{
+          Name = $GPOName;
+          Key = 'HKLM\SYSTEM\CurrentControlSet\Services\WinRM';
+      }
+          
+      try {
+          Set-GPRegistryValue @Params -ValueName 'Start' -Value 2 -Type DWord | Out-Null
+          Set-GPRegistryValue @Params -ValueName 'DelayedAutoStart' -Value 0 -Type DWord | Out-Null
+      } catch { 
+          Write-Error "Error while configuring PS Remoting policy!"
+      }
+
+      Write-Host "Configuring Firewall rules..."
+
+      $PolicyStoreName = "$Forest\$GPOName"
+      $GPOSessionName = Open-NetGPO -PolicyStore $PolicyStoreName
+      $FWRuleName = "Allow WinRM"
+
+      New-NetFirewallRule -DisplayName $FWRuleName -Profile Any -Direction Inbound -GPOSession $GPOSessionName -PolicyStore $GPOName -Protocol TCP -LocalPort 5985 | Out-Null
+      
+      Save-NetGPO -GPOSession $GPOSessionName | Out-Null
+
+      Write-Host "Configuring Security Filter..."
+
+      Set-GPPermissions -Name $GPOName -PermissionLevel GpoApply -TargetName "Domain Computers" -TargetType Group | Out-Null
+      Set-GPPermissions -Name $GPOName -PermissionLevel GpoApply -TargetName "Domain Users" -TargetType User | Out-Null
+
+      Write-Host "Linking and enabling new GPO..."
+
+      New-GPLink -Name $GPOName -Target $TargetOU -LinkEnabled Yes -Enforced Yes | Out-Null
+    }

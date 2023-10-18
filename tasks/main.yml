@@ -1,0 +1,39 @@
+---
+- name: Import the GroupPolicy module
+  ansible.builtin.include_tasks: gpo_psmodule.yml
+
+- name: Debloat Taskbar
+  ansible.builtin.include_tasks: debloat_taskbar.yml
+  when: enable_all or ("taskbar" in enabled_gpos)
+
+- name: Enable PS Remoting
+  ansible.builtin.include_tasks: enable_psremoting.yml
+  when: enable_all or ("psremoting" in enabled_gpos)
+
+- name: Power Settings
+  ansible.builtin.include_tasks: configure_power_settings.yml
+  when: enable_all or ("power" in enabled_gpos)
+
+- name: Enable RDP
+  ansible.builtin.include_tasks: enable_rdp.yml
+  when: enable_all or ("rdp" in enabled_gpos)
+
+- name: RDP Users Script
+  ansible.builtin.include_tasks: add_rdp_users_script.yml
+  when: enable_all or ("rdp_users" in enabled_gpos)
+
+- name: Enable SMB Sharing
+  ansible.builtin.include_tasks: enable_smb_sharing.yml
+  when: enable_all or ("smb_sharing" in enabled_gpos)
+
+- name: Enable PowerShell Scripts
+  ansible.builtin.include_tasks: enable_ps_scripts.yml
+  when: enable_all or ("ps_scripts" in enabled_gpos)
+
+- name: Enable WMI
+  ansible.builtin.include_tasks: enable_wmi.yml
+  when: enable_all or ("wmi" in enabled_gpos)
+
+- name: Disable Windows Defender
+  ansible.builtin.include_tasks: disable_defender.yml
+  when: enable_all or ("defender" in enabled_gpos)

@@ -1,0 +1,15 @@
+---
+domain_admin_user: 'ad01\administrator'
+domain_admin_password: Password!
+enable_all: true
+enabled_gpos:
+  - taskbar
+  - psremoting
+  - power
+  - rdp
+  - rdp_users
+  - smb_sharing
+  - ps_scripts
+  - wmi
+  - defender
+script_share_path: '\\pdc01\Resources'

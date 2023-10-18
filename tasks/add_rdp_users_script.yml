@@ -1,0 +1,42 @@
+---
+- name: Create RDP Users script
+  ansible.windows.win_copy:
+    dest: '{{ script_share_path }}\Add-RDPUsers.ps1'
+    content: |
+      Start-Transcript -Path "C:\rdpscript.txt"
+      $Computers = Get-ADComputer -Filter *
+      $Command = { Add-LocalGroupMember -Group "Remote Desktop Users" -Member "Domain Users" -ErrorAction Ignore }
+
+      foreach ($Computer in $Computers) {
+        Invoke-Command -ComputerName $Computer.Name -ScriptBlock $Command
+      }
+
+- name: Create scheduled tasks to add Domain Users to RDP group
+  community.windows.win_scheduled_task:
+    enabled: true
+    state: present
+    name: Add RDP users
+    description: Add domain users to RDP group
+    username: '{{ domain_admin_user }}'
+    password: '{{ domain_admin_password }}'
+    logon_type: password
+    run_level: highest
+    actions:
+      - path: C:\Windows\system32\cmd.exe
+        arguments: /c powershell.exe -ExecutionPolicy Bypass -File {{ script_share_path }}\Add-RDPUsers.ps1
+    triggers:
+      - type: boot
+        repetition:
+          interval: PT5M
+      - type: registration
+        repetition:
+          interval: PT5M
+    wake_to_run: true
+    allow_demand_start: true
+    disallow_start_if_on_batteries: false
+    execution_time_limit: PT0S
+    restart_count: 1440
+    restart_interval: P0Y0M0DT0H1M0S
+    start_when_available: true
+    run_only_if_idle: false
+    stop_if_going_on_batteries: false
